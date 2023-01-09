@@ -1,0 +1,215 @@
+{% macro render_table(table_name, relation, id, len) %}
+    <p>
+        <b>{{ table_name }} </b>
+    </p>
+    {% set n = len(relation) %}
+    <table border="1">
+        <tr style="background-color: rgb(242, 242, 242);">
+            {% for name in relation.dtypes.index %}
+                {% if name != id %}
+                    <th>{{ name }}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tbody>
+
+        {% for i in range(n) %}
+            <tr>
+                {% for name in relation.dtypes.index %}
+                    {% if name != id %}
+                        <td>
+                            {% if relation.loc[i, name] == NaN  %}
+                                <form action='' method="get">
+                                    <input type="hidden" name=return
+                                           value={{ relation.loc[i, "idPoseshenie"]}}>
+                                    <input type="submit" value="Оплатить">
+                                </form>
+                            {% elif relation.loc[i, name] == 0.0 %}
+                            <form action='' method="get">
+                                    <input type="hidden" name=return
+                                           value={{ relation.loc[i, "idPoseshenie"]}}>
+                                    <input type="submit" value="Оплатить">
+                                </form>
+                            {% elif relation.loc[i, name] == 1.0 %}
+                                Оплачено
+                            {% elif name == 'Время тренировки' %}
+                                 {{ relation.loc[i, name] }}:00
+                            {% else %}
+                                {{ relation.loc[i, name] }}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% macro render_clients(combo_box, idClients, len) %}
+    <select name="client" required>
+        {% set n = len(combo_box) %}
+        <!-- формируем строки списка (каждое значение поля
+        reader_name - строка списка) в виде
+        <option [selected] value = код_читателя> ФИО </option>
+        -->
+        {% for i in range(n) %}
+            {% set id_r = combo_box.loc[i, "idClients"] %}
+            <!-- атрибут value элемента будет совпадать с id читателя -->
+            {% if id_r == idClients %}
+                <!-- если код читателя из таблицы совпадает с кодом
+                текущего читателя устанавливаем атрибут selected -->
+                <option selected value={{ id_r }} name="selected_id">
+                    {% else %}
+                <option value={{ id_r }}>
+            {% endif %}
+        {{ combo_box.loc[i, "fio"] }}
+        </option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro render_filters(name, category, selected, len) %}
+    {% set n = len(category) %}
+    <fieldset>
+        <legend>{{ name }}</legend>
+        {% for i in range(n) %}
+            <div class="checkbox-wrapper">
+                {% set id_r = category.loc[i, category.columns[0]] %}
+                <input type="checkbox" name={{ category.columns[0] }} value={{ category.loc[i, category.columns[0]] }}
+                        {% if id_r in selected %}
+                            checked
+                        {% endif %}
+                >
+                <label>
+                    {% if name == 'Тренера'  %}
+                    {{ category.loc[i, category.columns[1]] }}
+                    {% else  %}
+                    {{ category.loc[i, category.columns[1]] }}
+                    ({{ category.loc[i, category.columns[2]] }})
+                    {% endif %}
+                </label>
+            </div>
+        {% endfor %}
+    </fieldset>
+{% endmacro %}
+
+{% macro render_cards(card, len) %}
+    {% set n = len(card) %}
+    {% for i in range(n) %}
+        <div class="card">
+            {% for name in card.dtypes.index %}
+                {% if (name != 'ID') and (name != 'Оплата')  %}
+                    {% if name == 'Начало тренировки' %}
+                    <p>{{ name }}: <b>{{ card.loc[i, name] }}:00</b></p>
+                    {% else %}
+                        <p>{{ name }}: <b>{{ card.loc[i, name] }}</b></p>
+                {% endif %}
+            {% endif %}
+            {% endfor %}
+            <div class="button-wrapper">
+                <form action="{{ url_for('index') }}" method="get">
+                    <input type="submit" value="Выбрать"
+                    {% if card.loc[i, 'Оплата'] == True %}
+                           disabled
+                            {% endif %}
+                    >
+                    <label>
+                        <input hidden type="text" name="training" value="{{ card.loc[i, 'ID'] }}">
+                    </label>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_selected(relation, sel, name, len) %}
+    {% if len(sel) != 0 %}
+        <p>&nbsp;{{ name }}:
+            {% set n = len(relation) %}
+            {% for i in range(n) %}
+                {% set id_r = relation.loc[i, relation.columns[0]] %}
+                {% if id_r in sel %}
+                    {% if id_r == sel[-1] %}
+                        {{ relation.loc[i, relation.columns[1]] }}.
+                    {% else %}
+                        {{ relation.loc[i, relation.columns[1]] }},
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </p>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_filters2(name, category, selected, len) %}
+    {% set n = len(category) %}
+    <fieldset>
+        <legend>{{ name }}</legend>
+        {% for i in range(n) %}
+            <div class="checkbox-wrapper">
+                 {% set id_r = category.loc[i, category.columns[0]] %}
+                <input type="radio" name="idTrainerSpec" value={{ category.loc[i, category.columns[0]] }}
+                        {% if id_r in selected %}
+                            checked
+                        {% endif %}
+                >
+                <label>
+                    {{ category.loc[i, category.columns[1]] }}
+                </label>
+            </div>
+        {% endfor %}
+    </fieldset>
+{% endmacro %}
+
+{% macro render_cards2(card, len) %}
+    {% set n = len(card) %}
+    {% for i in range(n) %}
+        <div class="card">
+            {% for name in card.dtypes.index %}
+                {% if (name != 'ID') and (name != 'Оплата')  %}
+                    {% if name == 'Начало тренировки' %}
+                    <p>{{ name }}: <b>{{ card.loc[i, name] }}:00</b></p>
+                    {% else %}
+                        <p>{{ name }}: <b>{{ card.loc[i, name] }}</b></p>
+                {% endif %}
+            {% endif %}
+            {% endfor %}
+            <div class="button-wrapper">
+                <form action="{{ url_for('index') }}" method="get">
+                    <input type="submit" value="Выбрать"
+                    {% if card.loc[i, 'Оплата'] == True %}
+                           disabled
+                            {% endif %}
+                    >
+                    <label>
+                        <input hidden type="text" name="training" value="{{ card.loc[i, 'ID'] }}">
+                    </label>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_clients2(combo_box, idTrainerSpec, len) %}
+    <select name="spec" required>
+        {% set n = len(combo_box) %}
+        <!-- формируем строки списка (каждое значение поля
+        reader_name - строка списка) в виде
+        <option [selected] value = код_читателя> ФИО </option>
+        -->
+        {% for i in range(n) %}
+            {% set id_r = combo_box.loc[i, "idTrainerSpec"] %}
+            <!-- атрибут value элемента будет совпадать с id читателя -->
+            {% if id_r == idTrainerSpec %}
+                <!-- если код читателя из таблицы совпадает с кодом
+                текущего читателя устанавливаем атрибут selected -->
+                <option selected value={{ id_r }} name="selected_id">
+                    {% else %}
+                <option value={{ id_r }}>
+            {% endif %}
+        {{ combo_box.loc[i, "spec"] }}
+        </option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+

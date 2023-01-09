@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Поиск</title>
+    <link rel="stylesheet" type="text/css" href="/static/CSS/search.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/CSS/style.css"/>
+    {% import "macros.html" as macros %}
+</head>
+<body>
+<div class=menu>
+    <ul>
+        <li class=active><a href="/">Поиск тренировок</a></li>
+    </ul>
+</div>
+<div class="content">
+    <div class="lists">
+        <form action="" method="post">
+            {{ macros.render_filters('Специализации', spec, sel_spec, len) }}
+            {{ macros.render_filters('Тренера', trainers, sel_trainers, len) }}
+            <br>
+            <input type="submit" value="Найти">
+            <input type="submit" name="clear" value="Очистить">
+        </form>
+    </div>
+    <div class="result">
+        <form action="{{ url_for('index') }}" method="get">
+            <input type="submit" name="noselect" value="Не выбирать тренировку">
+        </form>
+        <div class="chosen">
+            {{ macros.render_selected(spec, sel_spec, 'Специализации', len) }}
+            {{ macros.render_selected(trainers, sel_trainers, 'Тренера', len) }}
+        </div>
+        <div class="cards">
+            {{ macros.render_cards(card, len) }}
+        </div>
+    </div>
+</div>
+</body>
+</html>
